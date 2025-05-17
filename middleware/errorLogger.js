@@ -41,6 +41,7 @@ export const errorLogger = winston.createLogger({
       db: "mongodb://localhost:27017/GenreCollection",
       collection: "logs",
       level: "error",
+      options: { useUnifiedTopology: true },
     })
   ],
 
@@ -50,6 +51,7 @@ export const errorLogger = winston.createLogger({
     new winston.transports.MongoDB({
       db: "mongodb://localhost:27017/GenreCollection",
       collection: "exceptions",
+      options: { useUnifiedTopology: true },
     })
   ],
 
@@ -59,6 +61,7 @@ export const errorLogger = winston.createLogger({
     new winston.transports.MongoDB({
       db: "mongodb://localhost:27017/GenreCollection",
       collection: "rejections",
+      options: { useUnifiedTopology: true },
     })
   ]
 });
