@@ -21,5 +21,4 @@ const routes = (app) => {
 
   app.use(errorMiddleWare);
 };
-
 export default routes;
