@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node index-vidly.js",
-    "dev": "nodemon index-vidly.js"
+    "dev": "nodemon index-vidly.js",
+    "test": "jest"
   },
   "dependencies": {
     "bcrypt": "^5.0.1",
@@ -23,6 +24,7 @@
     "winston-mongodb": "^5.1.1"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
     "nodemon": "^2.0.22"
   }
 }
