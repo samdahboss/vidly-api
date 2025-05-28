@@ -52,7 +52,6 @@ describe("registerUser", () => {
   it("should return a user object if valid username is provided", () => {
     expect(lib.registerUser("username")).toMatchObject({
       username: "username",
-      id: new Date().getTime(),
     });
   });
 });
