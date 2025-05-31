@@ -1,4 +1,6 @@
 const lib = require("./lib");
+const db = require("./db");
+const mail = require("./mail");
 
 describe("absolute", () => {
   it("should return Positive for Positive Input", () => {
@@ -53,5 +55,34 @@ describe("registerUser", () => {
     expect(lib.registerUser("username")).toMatchObject({
       username: "username",
     });
+  });
+});
+
+describe("applyDiscount", () => {
+  it("should apply 10% discount if points is greater then 10", () => {
+    db.getCustomerSync = function (customerId) {
+      console.log("Fake Reading Customer");
+      return { id: customerId, points: 11 };
+    };
+
+    const order = { customerId: 1, totalPrice: 50 };
+    lib.applyDiscount(order);
+    expect(order.totalPrice).toBe(45);
+  });
+});
+
+describe("notifyCustomer", () => {
+  it("should send an email to the customer if the order is placed successfully", () => {
+    db.getCustomerSync = function (id) {
+      return { email: "email@a.com", id };
+    };
+
+    let isMailSent = false;
+    mail.send = function () {
+      isMailSent = true;
+    };
+
+    lib.notifyCustomer({ customerId: 1 });
+    expect(isMailSent).toBe(true);
   });
 });
