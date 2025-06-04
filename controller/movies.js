@@ -21,34 +21,37 @@ export const createMovie = async (req, res) => {
   const { error } = validateMovie(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
-  // Validate each genre ID
-  const invalidIds = req.body.genres.filter(
-    (id) => !mongoose.isValidObjectId(id)
-  );
-  if (invalidIds.length > 0) {
+  // Make sure we have genres in the database
+  const genreCount = await Genre.countDocuments();
+  if (genreCount === 0) {
+    return res
+      .status(404)
+      .send("No genres found in database. Please seed genres first.");
+  }
+
+  // Get all genres to reference in movies
+  const genres = await Genre.find();
+
+  const genreNames = req.body.genres.map((genre) => genre.toLowerCase());
+
+  const movieGenres = genreNames
+    .map((name) => {
+      const genre = genres.find((g) => g.genre_name.toLowerCase() === name);
+      return genre ? { _id: genre._id, genre_name: genre.genre_name } : null;
+    })
+    .filter((g) => g !== null);
+
+  if (movieGenres.length !== genreNames.length) {
     return res
       .status(400)
-      .send(`Invalid genre ID(s): ${invalidIds.join(", ")}`);
+      .send("One or more genre names are invalid or not found.");
   }
-
-  const movieGenres = await Genre.find({
-    _id: { $in: req.body.genres },
-  });
-
-  if (movieGenres.length !== req.body.genres.length) {
-    return res.status(400).send("One or more genre IDs are invalid.");
-  }
-
-  const storedGenreFormat = movieGenres.map((genre) => ({
-    _id: genre._id,
-    genre_name: genre.genre_name,
-  }));
 
   const newMovie = new Movie({
     name: req.body.name,
     description: req.body.description,
     popularity: req.body.popularity,
-    genres: storedGenreFormat,
+    genres: movieGenres,
     numberInStock: req.body.numberInStock,
     dailyRentalRate: req.body.dailyRentalRate,
     createdAt: new Date(),
@@ -63,28 +66,23 @@ export const updateMovie = async (req, res) => {
   const { error } = validateMovie(req.body);
   if (error) return res.status(400).send(error.details[0].message);
 
-  // Validate each genre ID
-  const invalidIds = req.body.genres.filter(
-    (id) => !mongoose.isValidObjectId(id)
-  );
-  if (invalidIds.length > 0) {
+  // Get all genres to reference in movies
+  const genres = await Genre.find();
+
+  const genreNames = req.body.genres.map((genre) => genre.toLowerCase());
+
+  const movieGenres = genreNames
+    .map((name) => {
+      const genre = genres.find((g) => g.genre_name.toLowerCase() === name);
+      return genre ? { _id: genre._id, genre_name: genre.genre_name } : null;
+    })
+    .filter((g) => g !== null);
+
+  if (movieGenres.length !== genreNames.length) {
     return res
       .status(400)
-      .send(`Invalid genre ID(s): ${invalidIds.join(", ")}`);
+      .send("One or more genre names are invalid or not found.");
   }
-
-  const movieGenres = await Genre.find({
-    _id: { $in: req.body.genres },
-  });
-
-  if (movieGenres.length !== req.body.genres.length) {
-    return res.status(400).send("One or more genre IDs are invalid.");
-  }
-
-  const storedGenreFormat = movieGenres.map((genre) => ({
-    _id: genre._id,
-    genre_name: genre.genre_name,
-  }));
 
   const movie = await Movie.findByIdAndUpdate(
     { _id: req.params.id },
@@ -93,7 +91,7 @@ export const updateMovie = async (req, res) => {
         name: req.body.name,
         description: req.body.description,
         popularity: req.body.popularity,
-        genres: storedGenreFormat,
+        genres: movieGenres,
         numberInStock: req.body.numberInStock,
         dailyRentalRate: req.body.dailyRentalRate,
         updatedAt: new Date(), // Changed from createdAt to updatedAt
